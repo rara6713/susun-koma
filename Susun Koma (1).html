@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Susun Koma</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#e6effa;--grid:#c5d8ee;--ink:#1b2a6b;--card:#fffefa;--soft:#eef3fb;--red:#d63a3a;--ok:#1b8a52;--line:#93aad0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111833;--grid:#1d2a52;--ink:#e0e8ff;--card:#18224a;--soft:#202c60;--red:#ff7b7b;--ok:#5ed39b;--line:#51679f}}
+:root[data-theme="dark"]{--bg:#111833;--grid:#1d2a52;--ink:#e0e8ff;--card:#18224a;--soft:#202c60;--red:#ff7b7b;--ok:#5ed39b;--line:#51679f}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font:19px/1.4 'Patrick Hand','Comic Sans MS',system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 36px}
+h1{font:600 2.1rem/1.1 Fredoka,system-ui,sans-serif;margin:0}
+.sub{margin:4px 0 14px}
+button{font:inherit;color:inherit}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button,.btn{border:2px solid var(--ink);background:var(--card);border-radius:10px;padding:6px 16px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--ink);color:var(--card)}
+.btn.main{background:var(--ink);color:var(--card);font-weight:600;padding:8px 24px}
+.btn:disabled{opacity:.4;cursor:default}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+body[data-mode=free] .soal-only{display:none}
+.qbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;align-items:center;margin-bottom:12px}
+#qt{font:600 1.7rem Fredoka,sans-serif}
+.stats{display:flex;gap:14px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:18px 12px;box-shadow:4px 4px 0 var(--ink)}
+.scroll{overflow-x:auto;display:flex;justify-content:safe center;padding:4px}
+.board{--s:46px;--g:18px}
+@media (max-width:520px){.board{--s:32px;--g:10px}}
+.row{display:flex;align-items:flex-end;margin:4px 0;width:max-content}
+.line{height:4px;background:var(--ink);border-radius:2px;margin:6px 0}
+.op,.sg{width:calc(var(--s)*.8);height:var(--s);display:inline-flex;align-items:center;justify-content:center;font:600 1.9rem Fredoka,sans-serif;background:none;border:0;padding:0}
+button.op:not(:disabled),button.sg:not(:disabled){border:2px dashed var(--line);border-radius:6px;cursor:pointer}
+.sg.neg{color:var(--red)}.sg.pos{opacity:.55}
+.cell{width:var(--s);height:var(--s);border:2px solid var(--ink);border-radius:6px;background:var(--soft);color:var(--ink);font:600 1.5rem Fredoka,sans-serif;text-align:center;padding:0;caret-color:var(--red)}
+.res .cell{border-color:var(--ok)}
+.gap{width:var(--g);height:var(--s);border:0;background:none;padding:0;cursor:pointer;position:relative}
+.gap::after{content:'';position:absolute;left:50%;bottom:6px;width:4px;height:4px;border-radius:50%;background:var(--line);transform:translateX(-50%);transition:transform .15s}
+.gap:hover:not(:disabled)::after{background:var(--red);transform:translateX(-50%) scale(1.9)}
+.gap:disabled{cursor:default}
+.gap.on::after{width:8px;height:8px;bottom:5px;background:var(--red)}
+.gap.on::before{content:'';position:absolute;left:calc(50% - 1px);bottom:-4px;width:4px;height:9px;background:var(--red);transform:skewX(20deg);border-radius:0 0 2px 2px}
+.gap.bad{background:color-mix(in srgb,var(--red) 22%,transparent);border-radius:6px}
+.stale .res{opacity:.35}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px;align-items:center}
+#msg{min-height:3.2em;margin:6px 0;font-weight:600}
+.err{color:var(--red)}.ok{color:var(--ok)}
+.how{margin:8px 0 0;max-width:60ch}
+</style>
+</head>
+<body data-mode="free">
+<main>
+  <h1>Susun Koma</h1>
+  <p class="sub">Penjumlahan dan pengurangan bilangan desimal bersusun</p>
+  <div class="tabs" role="group" aria-label="Pilih mode">
+    <button id="mFree">Bebas</button>
+    <button id="mSoal">Soal</button>
+  </div>
+  <div class="qbar soal-only">
+    <div>Kerjakan: <strong id="qt"></strong></div>
+    <div class="stats"><span>Poin <b id="sc">0</b></span><span>Beruntun <b id="sk">0</b></span></div>
+  </div>
+  <section class="card"><div class="scroll"><div id="board" class="board"></div></div></section>
+  <div class="actions">
+    <button class="btn main" id="go">Hitung</button>
+    <button class="btn" id="clear">Hapus</button>
+    <button class="btn" id="add">+ Kolom</button>
+    <button class="btn" id="sub">− Kolom</button>
+    <button class="btn soal-only" id="newq">Ganti soal</button>
+  </div>
+  <p id="msg" role="status"></p>
+  <p class="how">Isi angka di tiap kotak, lalu ketuk celah kecil di antara kotak untuk menaruh koma. Koma di kedua baris harus segaris. Kotak kosong dianggap 0. Tanda + atau − di depan tiap baris menentukan angkanya positif atau negatif (bisa diketuk, atau ketik + / − di kotak). Tanda di antara baris atas dan bawah mengganti operasi.</p>
+</main>
+<script>
+const $=s=>document.querySelector(s), board=$('#board'), msg=$('#msg');
+const blank=n=>({d:Array(n).fill(''),c:null,s:1});
+const st={n:6,op:'+',mode:'free',rows:[],score:0,streak:0,q:null,bad:false,neg:false,stale:false,done:false};
+const SC=14n;
+const val=r=>({v:BigInt(r.d.map(x=>x||'0').join(''))*BigInt(r.s),dec:r.c==null?0:st.n-1-r.c});
+const S=x=>x.v*10n**(SC-BigInt(x.dec));
+const fmt=(v,d)=>{const ng=v<0n;if(ng)v=-v;const s=v.toString().padStart(d+1,'0');return (ng?'−':'')+(d?s.slice(0,-d)+','+s.slice(-d):s)};
+const rnd=n=>Math.floor(Math.random()*n);
+function say(t,k){msg.textContent=t;msg.className=k||''}
+function reset(n){if(n)st.n=n;st.rows=[blank(st.n),blank(st.n),blank(st.n)];st.bad=st.neg=st.stale=st.done=false;say('');render()}
+function grow(){st.rows.forEach(r=>{r.d.unshift('');if(r.c!=null)r.c++});st.n++}
+function markStale(){if(st.mode==='free'&&st.rows[2].d.some(x=>x)&&!st.stale){st.stale=true;board.classList.add('stale')}}
+function render(){
+  const n=st.n,soal=st.mode==='soal';let h='';
+  [0,1,2].forEach(r=>{
+    const row=st.rows[r],ro=(r===2&&!soal)||st.done;
+    h+=`<div class="row${r===2?' res':''}">`;
+    if(r===1)h+=`<button class="op" data-act="op" ${soal?'disabled':''} aria-label="Ganti operasi">${st.op==='+'?'+':'−'}</button>`;
+    else h+=`<span class="op"></span>`;
+    h+=`<button class="sg ${row.s<0?'neg':'pos'}" data-r="${r}" ${ro?'disabled':''} aria-label="Tanda angka baris ${r+1}">${row.s<0?'−':'+'}</button>`;
+    for(let i=0;i<n;i++){
+      h+=`<input class="cell" data-r="${r}" data-i="${i}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Baris ${r+1} kolom ${i+1}" value="${row.d[i]}" ${ro?'readonly':''}>`;
+      if(i<n-1){const on=row.c===i;
+        h+=`<button class="gap${on?' on':''}${on&&st.bad&&r<2?' bad':''}" data-r="${r}" data-g="${i}" ${ro?'disabled':''} aria-label="Koma setelah kolom ${i+1}"></button>`}
+    }
+    h+='</div>';if(r===1)h+='<div class="line"></div>';
+  });
+  board.innerHTML=h;board.classList.toggle('stale',st.stale);
+  document.body.dataset.mode=st.mode;
+  $('#mFree').setAttribute('aria-pressed',!soal);$('#mSoal').setAttribute('aria-pressed',soal);
+  $('#go').textContent=st.done?'Soal berikutnya':soal?'Periksa':'Hitung';
+  $('#qt').textContent=st.q?st.q.text:'';$('#sc').textContent=st.score;$('#sk').textContent=st.streak;
+}
+function newQ(){
+  const mk=dec=>{const ip=rnd(2)?1+rnd(9):10+rnd(90);let fp='';for(let i=0;i<dec;i++)fp+=rnd(10);
+    if(fp.endsWith('0'))fp=fp.slice(0,-1)+(1+rnd(9));return{v:BigInt(ip+fp),dec}};
+  const da=1+rnd(3),db=[1,2,3].filter(x=>x!==da)[rnd(2)];
+  const a=mk(da),b=mk(db);const op=rnd(2)?'+':'−';
+  if(rnd(5)<2)a.v=-a.v;if(rnd(5)<2)b.v=-b.v;
+  st.op=op;
+  st.q={a,b,ans:op==='+'?S(a)+S(b):S(a)-S(b),text:`${fmt(a.v,a.dec)} ${op} ${b.v<0n?'('+fmt(b.v,b.dec)+')':fmt(b.v,b.dec)}`};
+  st.n=7;reset();
+}
+function setMode(m){st.mode=m;if(m==='soal')newQ();else{st.q=null;st.op='+';reset(6)}}
+function bad(a,b){
+  st.bad=true;render();board.classList.remove('shake');void board.offsetWidth;board.classList.add('shake');
+  say(`Koma belum sejajar, jadi belum bisa dioperasikan. Baris pertama punya ${a.dec} angka di belakang koma, baris kedua ${b.dec}. Geser koma supaya segaris.`,'err');
+}
+function go(){
+  if(st.done){newQ();return}
+  const [A,B,R]=st.rows,a=val(A),b=val(B);
+  if(st.mode==='free'){
+    if(a.dec!==b.dec)return bad(a,b);
+    let r=st.op==='+'?a.v+b.v:a.v-b.v;st.neg=r<0n;if(st.neg)r=-r;
+    const s=r.toString().padStart(a.dec+1,'0');
+    while(s.length>st.n&&st.n<14)grow();
+    const res=st.rows[2];res.s=st.neg?-1:1;
+    res.d=s.padStart(st.n,' ').split('').map(x=>x===' '?'':x);
+    res.c=a.dec>0?st.n-1-a.dec:null;
+    st.stale=false;render();
+    say(`Hasil: ${st.neg?'−':''}${fmt(r,a.dec)}`,'ok');
+    return;
+  }
+  const q=st.q;
+  if(S(a)!==S(q.a)||S(b)!==S(q.b)){say(`Dua baris atas belum sama dengan soal ${q.text}. Cek angka, tanda + atau −, dan posisi komanya.`,'err');return}
+  if(a.dec!==b.dec)return bad(a,b);
+  if(!R.d.some(x=>x)){say('Tulis hasilnya di bawah garis, lengkap dengan komanya.','err');return}
+  if(S(val(R))===q.ans){
+    st.streak++;const pts=10+(st.streak>1?5:0);st.score+=pts;st.done=true;render();
+    say(`Benar! +${pts} poin. Tekan "Soal berikutnya" untuk lanjut.`,'ok');
+  }else{
+    st.streak=0;$('#sk').textContent=0;
+    say('Hasilnya belum tepat. Periksa lagi tiap kolom dari kanan, perhatikan menyimpan atau meminjam, dan posisi koma hasil.','err');
+  }
+}
+board.addEventListener('click',e=>{
+  const sg=e.target.closest('.sg');
+  if(sg&&!sg.disabled){const r=+sg.dataset.r;st.rows[r].s*=-1;if(r<2)markStale();say('');render();return}
+  const g=e.target.closest('.gap');
+  if(g&&!g.disabled){const r=st.rows[+g.dataset.r],i=+g.dataset.g;r.c=r.c===i?null:i;st.bad=false;if(+g.dataset.r<2)markStale();say('');render();return}
+  if(e.target.closest('[data-act=op]')&&st.mode==='free'){st.op=st.op==='+'?'−':'+';markStale();render()}
+});
+board.addEventListener('input',e=>{
+  const t=e.target;if(!t.classList.contains('cell'))return;
+  const sm=t.value.match(/[-−+]/g);
+  if(sm){const r=+t.dataset.r,row=st.rows[r];row.s=sm[sm.length-1]==='+'?1:-1;t.value=row.d[+t.dataset.i];
+    const b=board.querySelector(`.sg[data-r="${r}"]`);b.className='sg '+(row.s<0?'neg':'pos');b.textContent=row.s<0?'−':'+';
+    if(r<2)markStale();return}
+  const v=t.value.replace(/\D/g,'').slice(-1);t.value=v;
+  st.rows[+t.dataset.r].d[+t.dataset.i]=v;
+  if(+t.dataset.r<2)markStale();
+  if(st.bad){st.bad=false;board.querySelectorAll('.bad').forEach(x=>x.classList.remove('bad'))}
+  if(v){const nx=t.nextElementSibling?.nextElementSibling;if(nx?.classList.contains('cell'))nx.focus()}
+});
+board.addEventListener('keydown',e=>{
+  const t=e.target;if(!t.classList.contains('cell'))return;
+  const prev=t.previousElementSibling?.previousElementSibling,next=t.nextElementSibling?.nextElementSibling;
+  if((e.key==='Backspace'&&!t.value||e.key==='ArrowLeft')&&prev?.classList.contains('cell')){e.preventDefault();prev.focus()}
+  if(e.key==='ArrowRight'&&next?.classList.contains('cell')){e.preventDefault();next.focus()}
+  if(e.key==='Enter')go();
+});
+board.addEventListener('focusin',e=>{if(e.target.classList.contains('cell'))e.target.select()});
+$('#go').onclick=go;
+$('#clear').onclick=()=>reset();
+$('#newq').onclick=()=>{st.streak=0;newQ()};
+$('#mFree').onclick=()=>setMode('free');
+$('#mSoal').onclick=()=>setMode('soal');
+$('#add').onclick=()=>{if(st.n>=12){say('Kolom sudah maksimal.','err');return}grow();say('');render()};
+$('#sub').onclick=()=>{
+  const free=st.rows.every(r=>!r.d[0]&&r.c!==0);
+  if(st.n<=3){say('Minimal 3 kolom.','err');return}
+  if(!free){say('Kolom paling kiri masih terisi atau ada koma di sana.','err');return}
+  st.rows.forEach(r=>{r.d.shift();if(r.c!=null)r.c--});st.n--;say('');render();
+};
+reset(6);
+</script>
+</body>
+</html>
